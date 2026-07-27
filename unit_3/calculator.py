@@ -39,7 +39,7 @@ def mul_func(num_1, add_op, num_2):
 # division function
 def div_func(num_1, add_op, num_2):
 	if num_1 and num_2 and add_op == "/":
-		if num_1 != "0" and num_2 != "0":
+		if num_2 != "0":
 			sys_op = round((float(num_1) / float(num_2)), 2)
 			num_history.append(f"{float(num_1)} / {float(num_2)} = {sys_op}")
 			print(f"= {sys_op}\n")
@@ -49,7 +49,7 @@ def div_func(num_1, add_op, num_2):
 # floor division
 def fl_divfunc(num_1, add_op, num_2):
 	if num_1 and num_2 or add_op == "//":
-		if num_1 != "0" and num_2 != "0":
+		if num_2 != "0":
 			sys_op = round((float(num_1) // float(num_2)), 2)
 			num_history.append(f"{float(num_1)} // {float(num_2)} = {sys_op}")
 			print(f"= {sys_op}\n")
