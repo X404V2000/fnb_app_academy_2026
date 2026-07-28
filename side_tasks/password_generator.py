@@ -1,3 +1,31 @@
+'''
+Requirements
+Core Features:
+Ask the user how long they want their password (between 8-32 characters)
+
+Ask what character types to include:
+
+Uppercase letters (A-Z)
+
+Lowercase letters (a-z)
+
+Numbers (0-9)
+
+Special characters (!@#$%^&*)
+
+Generate a random password based on their choices
+
+Display the generated password clearly
+
+Ask if they want to generate another password
+
+Advanced Features (Bonus):
+Password strength indicator (Weak/Medium/Strong)
+
+Save passwords to history (like your calculator!)
+
+Copy password to clipboard (research pyperclip library)
+'''
 import random
 import string
 import pyperclip
