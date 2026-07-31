@@ -31,7 +31,6 @@ import string
 import pyperclip
 import time
 import datetime
-import pprint
 import json
 
 #simulating external dbase
