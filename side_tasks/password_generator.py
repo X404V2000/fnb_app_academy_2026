@@ -66,6 +66,25 @@ def passwd_generator(passwd_history, _passwd):
 		print(f"{'|'} {rand_passwd:<36} {'|'}")
 		print("+" + "-"*38 + "+" + "\n")
 		
+		score = 0
+		if len(rand_passwd) >= 12:
+			score += 1
+		if any(c.isupper() for c in rand_passwd):
+			score += 1
+		if any(c.islower() for c in rand_passwd):
+			score += 1
+		if any(c.isdigit() for c in rand_passwd):
+			score += 1
+		if any(c in string.punctuation for c in rand_passwd):
+			score += 1
+		
+		if score <= 2:
+			print("Weak Password")
+		elif score <= 4:
+			print("Medium Password")
+		else:
+			print("Strong Password")
+
 		try:
 			rsync_copy = input("Copy password:\ny/N\n")
 		except ValueError:
@@ -134,7 +153,7 @@ def main():
 			passwd_generator(passwd_history, _passwd)
 			while True:
 				try:
-					_passwd_opt = input("Do you want to generate a new passwd: ").strip().upper()
+					_passwd_opt = input("Do you want to generate a new password: ").strip().upper()
 				except ValueError:
 					print("y/N")
 					continue
@@ -148,14 +167,6 @@ def main():
 					print("Error 400")
 					continue
 						
-			if _passwd <= 7:
-				print("Weak Password")
-			elif _passwd >= 8 and _passwd <= 15:
-				print("Medium Password")
-			elif _passwd >= 16 and _passwd <= 32:
-				print("Strong Password")
-			else:
-				continue
 		elif main_opt == 2:
 			view_psswd_history(passwd_history)
 		elif main_opt == 3:
@@ -171,4 +182,3 @@ def main():
 
 if __name__ == "__main__":
 	main()
-
