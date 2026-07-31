@@ -161,6 +161,11 @@ def main():
 					print(f"{RED}y/N{RESET}")
 					continue
 				if _passwd_opt == "Y":
+					try:
+						_passwd = int(input(f"{GREEN}How long would you like your password to be: {RESET}"))
+					except ValueError:
+						print("{RED}Password must be 8-32 longer{RESET}")
+						continue
 					passwd_generator(passwd_history, _passwd)
 				elif _passwd_opt == "N":
 					print(f"\n{RED}Make sure to change your password in a while{RESET}\n")
@@ -185,3 +190,4 @@ def main():
 
 if __name__ == "__main__":
 	main()
+
