@@ -29,13 +29,17 @@ Copy password to clipboard (research pyperclip library)
 import random
 import string
 import pyperclip
+import time
+import datetime
+import pprint
+import json
 
-passwd_dbase = []	#simulating external dbase
+#simulating external dbase
+#stores every passwd generated
+passwd_history = []	#simulating external dbase
 
-passwd_cache = []		#clipboard ///data removed when system shut-down
-
-def passwd_generator(passwd_dbase, _passwd):
-	if _passwd:
+def passwd_generator(passwd_history, _passwd):
+	if _passwd >= 8 and _passwd <= 32:
 		passwd_stru = string.ascii_letters + string.digits + string.punctuation
 		rand_passwd = random.choice(string.ascii_uppercase)
 		rand_passwd += random.choice(string.ascii_lowercase)
@@ -51,53 +55,65 @@ def passwd_generator(passwd_dbase, _passwd):
 		rand_passwd = ''.join(fin_passwd)
 		
 		#creates a new dictionary for every password created
-		passwd_dbase.append({"password": ""})
-		passwd_dbase[-1]["password"] = rand_passwd
-		
+		passwd_history.append({"password": "", "time": ""})
+		tm = time.time()
+		dt = datetime.datetime.fromtimestamp(tm).strftime("%Y-%m-%d %H-%M-%S")
+		passwd_history[-1]["password"] = rand_passwd
+		passwd_history[-1]["time"] = dt
+
 		#display password
 		print("\n" + "+" + "-"*38 + "+")
 		print(f"{'|'} {rand_passwd:<36} {'|'}")
 		print("+" + "-"*38 + "+" + "\n")
 		
-		while True:
-			_passwd_opt = input("Do you want to generate a new passwd: ")
-			if _passwd_opt == "y" or _passwd_opt == "Y":
-				passwd_dbase.append({"password": ""})
-				passwd_dbase[-1]["password"] = rand_passwd
-				
-				#display password
-				print("\n" + "+" + "-"*38 + "+")
-				print(f"{'|'} {rand_passwd:<36} {'|'}")
-				print("+" + "-"*38 + "+" + "\n")
-			
-			elif _passwd_opt == "n" or _passwd_opt == "N":
-				print("Make sure to change your password in a while")
-				break
-			
-			else:
-				print("Error 400")
-				continue
-			
-def copy_to(passwd_cache):
-	if rand_passwd in passwd_dbase:
-		while True:
-			copy_opt = input("Would you like to copy this. y/N: ")
-			if copy_opt == "y" or copy_opt == "Y":
-				pyperclip.clear()
-				pyperclip.copy(rand_passwd)
-				break
-			elif copy_opt == "n" or copy_opt == "N":
-				break
-			else:
-				continue
+		try:
+			rsync_copy = input("Copy password:\ny/N\n")
+		except ValueError:
+			print("Error 400")
 		
-#def passwd_varification():
+		if rsync_copy == "y" or rsync_copy == "Y":
+			pyperclip.copy(passwd_history[-1]["password"])
+		elif rsync_copy == "n" or rsync_copy == "N":
+			return True
+		else:
+			return False
+
+	else:
+		print("\nPassword too long or too short\n")
+	
+def view_psswd_history(passwd_history):
+	if not passwd_history:
+		print("List Empty")
+		return
+	print("="*60 + "Password History" + "="*60)
+	for entry in passwd_history:
+		print(f"{entry['time']} | {entry['password']}")
+	print("="*60)
+
+def paste_to():
+	clipboard_content = pyperclip.paste()
+	if clipboard_content:
+		print("\n" + "+" + "-"*38 + "+")
+		print(f"| {clipboard_content:<36} |")
+		print("+" + "-"*38 + "+")
+	else:
+		print("Clipboard Empty")
+
+def stor_fil(passwd_history):
+	try:
+		json_fil = json.dumps(passwd_history, indent = 5)
+		with open(input("Save file as: "), "w") as file:
+			file.write(json_fil)
+	except ValueError:
+		return f"{ValueError}"
 
 def menu():
-	print("="*60 + "\nPassword Genarator\n" + "="*60)
+	print("="*60 + "\nPassword Generator\n" + "="*60)
 	print("[1]. Create Password")
-	print("[2]. Copy Password to Clipboard")
-	print("[3]. Exit")
+	print("[2]. View Password History")
+	print("[3]. View Copied Password")
+	print("[4]. Store Data")
+	print("[5]. Exit")
 	print("="*60)
 
 def main():
@@ -106,17 +122,53 @@ def main():
 		try:
 			main_opt = int(input("Choose Option: "))
 		except ValueError:
-			print("Error 400")
+			print("Choose Option 1-5")
 			continue
 		
 		if main_opt == 1:
-			_passwd = int(input("How long would you like your rand_passwd to be: "))
-			passwd_generator(passwd_dbase, _passwd)
+			try:
+				_passwd = int(input("How long would you like your password to be: "))
+			except ValueError:
+				print("Password must be 8-32 longer")
+				continue
+			passwd_generator(passwd_history, _passwd)
+			while True:
+				try:
+					_passwd_opt = input("Do you want to generate a new passwd: ").strip().upper()
+				except ValueError:
+					print("y/N")
+					continue
+				if _passwd_opt == "Y":
+					passwd_generator(passwd_history, _passwd)
+				elif _passwd_opt == "N":
+					print("\nMake sure to change your password in a while\n")
+					break
+				
+				else:
+					print("Error 400")
+					continue
+						
+			if _passwd <= 7:
+				print("Weak Password")
+			elif _passwd >= 8 and _passwd <= 15:
+				print("Medium Password")
+			elif _passwd >= 16 and _passwd <= 32:
+				print("Strong Password")
+			else:
+				continue
 		elif main_opt == 2:
-			copy_to(passwd_cache)
+			view_psswd_history(passwd_history)
+		elif main_opt == 3:
+			paste_to()
+		elif main_opt == 4:
+			stor_fil(passwd_history)
+		elif main_opt == 5:
+			print("System shutting-down")
+			break
 		else:
 			print("Error 400")
 			continue
 
 if __name__ == "__main__":
 	main()
+
