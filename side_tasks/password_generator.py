@@ -36,16 +36,15 @@ import random
 app = FastAPI()
 
 class creds:
-	def _creds(sys_usrId, sys_usrPasswd, sys_usrEmail):
-		#sys_email
+	@app.get("/str/{sys_usrId}/{sys_usrPasswd}/{sys_usrEmail}")
+	def _creds(sys_usrId: str, sys_usrPasswd: str, sys_usrEmail: str):
+		#stores data from external file
 		sys_email= creds.sys_email
-		
-		#usr_creds
 		sys_usrId = creds.usr_id
 		sys_usrPasswd = creds.usr_passwd
 		sys_usrEmail = creds.email
 
-class loginPage:	#if login fail
+class loginPage:	#if login pass
 	def validateResponse(sys_usrId, sys_usrPasswd, main_usrName, main_usrPasswd):
 		if main_usrName in sys_usrId and main_usrPasswd in sys_usrPasswd:
 			# failResponse_menu
@@ -54,7 +53,7 @@ class loginPage:	#if login fail
 			print("[2]. ")	#correct argument for main page
 			print("="*60)
 
-class fail_loginPage:	
+class fail_loginPage:	#if login fail
 	def failResponse_returnOutput():
 		for entry in main_usrName and sys_usrId
 		if main_usrName not in sys_usrId and main_usrPasswd not in sys_usrPasswd:
@@ -103,29 +102,23 @@ class usr_AccReset:
 			return False
 
 	def reset_loginValidate(sys_usrPasswd):
-		if otpResponse:
-			try:
-				newPasswd = input("Create new password: ")
-			except ValuError:
-				print("Create new password")
-			if newPasswd not in sys_usrPasswd:
-				sys_usrPasswd = newPasswd
-				if newPasswd in sys_usrPasswd:
-					print("Successfully updated your password")
-					return True
-				else:
-					print("Unsuccessful process")
-					return False
+		if newPasswd not in sys_usrPasswd:
+			sys_usrPasswd = newPasswd
+			if newPasswd in sys_usrPasswd:
+				print("Successfully updated your password")
+				return True
 			else:
-				print("Password cannot be the same as old password")
-			return True
+				print("Unsuccessful process")
+				return False
+		else:
+			print("Password cannot be the same as old password")
+		return True
 
 	def menu():
 		print("="*60 + "OpenX" + "="*60)
 		print("[1]. Login")
 		print("[2]. Forgot password")
-		print("[3]. Create new account")
-		print("[4]. Exit")
+		print("[3]. Exit")
 		print("="*60)
 
 	def main():
@@ -156,8 +149,21 @@ class usr_AccReset:
 						print(f"OTP sent to\n{maske_email(sys_usrEmail)}")
 						print("\n")
 						reset_loginPage(sys_email, sys_usrId, sys_usrEmail, rec_usrId)
-						otpInput = int(input("Enter OTP: "))
+						
+						try:
+							otpInput = int(input("Enter OTP: "))
+						except ValueError:
+							print("Invalid option")
+							continue
+						reset_loginPage(sys_email: str, sys_usrId: str, sys_usrEmail: str, rec_usrId: str)
 
+						newPasswd = input("Create new password: ").strip()
+						reset_loginValidate(sys_usrPasswd)
+				elif menuArg == 3:
+					print("System Shutting-down")
+					break
+				else:
+					continue
 			else:
 				continue
 
