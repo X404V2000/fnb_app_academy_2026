@@ -30,7 +30,7 @@ import creds
 import smtplib
 import ssl
 from getpass import getpass
-import fastapi import FastAPI
+from fastapi import FastAPI
 import random
 
 app = FastAPI()
@@ -45,6 +45,7 @@ class creds:
 		sys_usrEmail = creds.email
 
 class loginPage:	#if login pass
+	@staticmethod
 	def validateResponse(sys_usrId, sys_usrPasswd, main_usrName, main_usrPasswd):
 		if main_usrName in sys_usrId and main_usrPasswd in sys_usrPasswd:
 			# failResponse_menu
@@ -52,12 +53,13 @@ class loginPage:	#if login pass
 			print("[1]. ")	#correct argument for main page
 			print("[2]. ")	#correct argument for main page
 			print("="*60)
+		return False
 
 class fail_loginPage:	#if login fail
-	def failResponse_returnOutput():
-		for entry in main_usrName and sys_usrId
-		if main_usrName not in sys_usrId and main_usrPasswd not in sys_usrPasswd:
-			return 
+	def failResponse_returnOutput(main_usrName, sys_usrId, main_usrPasswd, sys_usrPasswd):
+		for entry in main_usrName and sys_usrId:
+			if main_usrName not in sys_usrId and main_usrPasswd not in sys_usrPasswd:
+				return 
 
 class usr_AccReset:
 	def usrnameValidating(sys_usrEmail: str) -> str:
@@ -81,27 +83,30 @@ class usr_AccReset:
 	@app.put("/value/{randomOTP}")
 	def reset_loginPage(sys_email: str, sys_usrId: str, sys_usrEmail: str, rec_usrId: str):
 		if rec_usrId in sys_id:
-			port = 465
-			smtp_server = smtp.gmail.com
-			sender_email = sys_email
-			sender_passwd = getpass("Enter password to continue: ")
+			try:
+				port = 465
+				smtp_server = smtp.gmail.com
+				sender_email = sys_email
+				sender_passwd = getpass("Enter password to continue: ")
 
-			context = ssl.create_default_context()
-			with smtplib.SMTP_SSL(
-				smtp_server,
-				port,
-				context = context,
-				) as server:
-				server.login(sender_email, password)
-				message = f"OTP [{randomOTP}]"
-				server.sendmail(sender_email, sys_usrEmail, message)
-			return {"OTP sent to you"}
+				context = ssl.create_default_context()
+				with smtplib.SMTP_SSL(
+					smtp_server,
+					port,
+					context = context,
+					) as server:
+					server.login(sender_email, password)
+					message = f"OTP [{randomOTP}]"
+					server.sendmail(sender_email, sys_usrEmail, message)
+				return {"OTP sent to you"}
+			except Exception as e:
+				return {"error": str(e)}
 
-		if rec_usrId not in sys_id:
+		else:
 			print("Username not found")
 			return False
 
-	def reset_loginValidate(sys_usrPasswd):
+	def reset_loginValidate(sys_usrPasswd, newPasswd):
 		if newPasswd not in sys_usrPasswd:
 			sys_usrPasswd = newPasswd
 			if newPasswd in sys_usrPasswd:
@@ -112,7 +117,7 @@ class usr_AccReset:
 				return False
 		else:
 			print("Password cannot be the same as old password")
-		return True
+			return True
 
 	def menu():
 		print("="*60 + "OpenX" + "="*60)
@@ -122,6 +127,10 @@ class usr_AccReset:
 		print("="*60)
 
 	def main():
+		sys_email = creds.sys_email if hasattr(creds, 'sys_email') else None
+		sys_email = creds.usr_id if hasattr(creds, 'usr_id') else None
+		sys_ursPasswd = creds.usr_passwd if hasattr(creds, 'usr_passwd') else None
+		sys_usrEmail = creds.email if hasattr(creds, 'email') else None
 		while True:
 			print("Log in to OpenX")
 			try:
@@ -141,24 +150,26 @@ class usr_AccReset:
 					continue
 
 				if menuArg == 1:
-					validateResponse(sys_usrId, sys_usrPasswd, main_usrName, main_usrPasswd)
+					loginPage.validateResponse(sys_usrId, sys_usrPasswd, main_usrName, main_usrPasswd)
 				elif menuArg == 2:
 					usrnamValidate = input("Enter username to continue: ").strip()
 					if usrnamValidate in sys_usrId:
-						usrnameValidating(sys_usrEmail: str)
-						print(f"OTP sent to\n{maske_email(sys_usrEmail)}")
+						usrnameValidating(sys_usrEmail)
+						print(f"OTP sent to\n{maske_email(maske_email)}")
 						print("\n")
-						reset_loginPage(sys_email, sys_usrId, sys_usrEmail, rec_usrId)
+
+						otp_data = self.genOTP(None)
+						generated_otp = otp_data["generated"]
 						
+						result = self.reset_loginPage(sys_email, sys_usrId, sys_usrEmail, rec_usrId)
 						try:
 							otpInput = int(input("Enter OTP: "))
 						except ValueError:
 							print("Invalid option")
 							continue
-						reset_loginPage(sys_email: str, sys_usrId: str, sys_usrEmail: str, rec_usrId: str)
-
-						newPasswd = input("Create new password: ").strip()
-						reset_loginValidate(sys_usrPasswd)
+						if str(otpInput) == generated_otp
+							newPasswd = input("Create new password: ").strip()
+							self.reset_loginValidate(sys_usrPasswd)
 				elif menuArg == 3:
 					print("System Shutting-down")
 					break
@@ -168,4 +179,5 @@ class usr_AccReset:
 				continue
 
 __name__ == "__main__":
-	main()
+	app = usrAccReset()
+	app.main()
