@@ -26,158 +26,167 @@ Save passwords to history (like your calculator!)
 
 Copy password to clipboard (research pyperclip library)
 '''
-import creds
-import smtplib
-import ssl
-from getpass import getpass
-from fastapi import FastAPI
 import random
+import string
+import pyperclip
+import time
+import datetime
+import json
 
-app = FastAPI()
+RED = '\033[91m'
+GREEN = '\033[92m'
+RESET = '\033[0m'
 
-class creds:
-	@app.get("/str/{sys_usrId}/{sys_usrPasswd}/{sys_usrEmail}")
-	def _creds(sys_usrId: str, sys_usrPasswd: str, sys_usrEmail: str):
-		#stores data from external file
-		sys_email= creds.sys_email
-		sys_usrId = creds.usr_id
-		sys_usrPasswd = creds.usr_passwd
-		sys_usrEmail = creds.email
+#simulating external dbase
+#stores every passwd generated
+passwd_history = []	#simulating external dbase
 
-class loginPage:	#if login pass
-	@staticmethod
-	def validateResponse(sys_usrId, sys_usrPasswd, main_usrName, main_usrPasswd):
-		if main_usrName in sys_usrId and main_usrPasswd in sys_usrPasswd:
-			# failResponse_menu
-			print("="*60 + "\nOpenx\n" + "="*60)
-			print("[1]. ")	#correct argument for main page
-			print("[2]. ")	#correct argument for main page
-			print("="*60)
-		return False
+def passwd_generator(passwd_history, _passwd):
+	if _passwd >= 8 and _passwd <= 32:
+		passwd_stru = string.ascii_letters + string.digits + string.punctuation
+		rand_passwd = random.choice(string.ascii_uppercase)
+		rand_passwd += random.choice(string.ascii_lowercase)
+		rand_passwd += random.choice(string.digits)
+		rand_passwd += random.choice(string.punctuation)
 
-class fail_loginPage:	#if login fail
-	def failResponse_returnOutput(main_usrName, sys_usrId, main_usrPasswd, sys_usrPasswd):
-		for entry in main_usrName and sys_usrId:
-			if main_usrName not in sys_usrId and main_usrPasswd not in sys_usrPasswd:
-				return 
+		for i in range(_passwd):
+			rand_passwd += random.choice(passwd_stru)
+		
+		fin_passwd = list(rand_passwd)
 
-class usr_AccReset:
-	def usrnameValidating(sys_usrEmail: str) -> str:
-		if '@' not in sys_usrEmail:
-			return sys_usrEmail
-		local_part, domain = sys_usrEmail.split('@')
-		if len(local_part) <= 1:
-			return sys_usrEmail
-		masked_local = local_part[0] + '*' * (len(local_part) - 1)
-		return f"{masked_local}@{domain}"
+		random.SystemRandom().shuffle(fin_passwd)
+		rand_passwd = ''.join(fin_passwd)
+		
+		#creates a new dictionary for every password created
+		passwd_history.append({"password": "", "time": ""})
+		tm = time.time()
+		dt = datetime.datetime.fromtimestamp(tm).strftime("%Y-%m-%d %H-%M-%S")
+		passwd_history[-1]["password"] = rand_passwd
+		passwd_history[-1]["time"] = dt
 
-	@app.get("/value/{randomOTP}")	
-	def genOTP(randomOTP: str = None):
-		num = 6
-		otpStructure = string.digits
-		randomOPT = random.choice(string.digits)
-		finalOutput = list(randomOTP)
-		random.SystemRandom().shuffle(randomOTP)
-		randomOTP = ''.join(finalOutput)
-
-	@app.put("/value/{randomOTP}")
-	def reset_loginPage(sys_email: str, sys_usrId: str, sys_usrEmail: str, rec_usrId: str):
-		if rec_usrId in sys_id:
-			try:
-				port = 465
-				smtp_server = smtp.gmail.com
-				sender_email = sys_email
-				sender_passwd = getpass("Enter password to continue: ")
-
-				context = ssl.create_default_context()
-				with smtplib.SMTP_SSL(
-					smtp_server,
-					port,
-					context = context,
-					) as server:
-					server.login(sender_email, password)
-					message = f"OTP [{randomOTP}]"
-					server.sendmail(sender_email, sys_usrEmail, message)
-				return {"OTP sent to you"}
-			except Exception as e:
-				return {"error": str(e)}
-
+		#display password
+		print(f"\n{RED}" + "+" + "-"*38 + f"{RED}+{RESET}")
+		print(f"{RED}{'|'} {rand_passwd:<36} {'|'}{RESET}")
+		print(f"{RED}+" + "-"*38 + f"{RED}+{RESET}" + "\n")
+		
+		score = 0
+		if len(rand_passwd) >= 12:
+			score += 1
+		if any(c.isupper() for c in rand_passwd):
+			score += 1
+		if any(c.islower() for c in rand_passwd):
+			score += 1
+		if any(c.isdigit() for c in rand_passwd):
+			score += 1
+		if any(c in string.punctuation for c in rand_passwd):
+			score += 1
+		
+		if score <= 2:
+			print(f"{RED}Weak Password{RESET}")
+		elif score <= 4:
+			print(f"{RED}Medium Password{RESET}")
 		else:
-			print("Username not found")
+			print(f"{RED}Strong Password{RESET}")
+
+		try:
+			rsync_copy = input(f"{GREEN}Copy password:\ny/N{RESET}\n")
+		except ValueError:
+			print(f"{RED}Error 400{RESET}")
+		
+		if rsync_copy == "y" or rsync_copy == "Y":
+			pyperclip.copy(passwd_history[-1]["password"])
+		elif rsync_copy == "n" or rsync_copy == "N":
+			return True
+		else:
 			return False
 
-	def reset_loginValidate(sys_usrPasswd, newPasswd):
-		if newPasswd not in sys_usrPasswd:
-			sys_usrPasswd = newPasswd
-			if newPasswd in sys_usrPasswd:
-				print("Successfully updated your password")
-				return True
-			else:
-				print("Unsuccessful process")
-				return False
-		else:
-			print("Password cannot be the same as old password")
-			return True
+	else:
+		print(f"\n{RED}Password too long or too short{RESET}\n")
+	
+def view_psswd_history(passwd_history):
+	if not passwd_history:
+		print(f"{RED}List Empty{RESET}")
+		return
+	print(f"{RED}="*60 + "\nPassword History\n" + f"{RED}={RESET}"*60)
+	for entry in passwd_history:
+		print(f"{RED}{entry['time']} | {entry['password']}{RESET}")
+	print(f"{RED}={RESET}"*60)
 
-	def menu():
-		print("="*60 + "OpenX" + "="*60)
-		print("[1]. Login")
-		print("[2]. Forgot password")
-		print("[3]. Exit")
-		print("="*60)
+def paste_to():
+	clipboard_content = pyperclip.paste()
+	if clipboard_content:
+		print(f"\n{RED}" + "+" + "-"*38 + f"{RED}+{RESET}")
+		print(f"{RED}| {clipboard_content:<36} |{RESET}")
+		print(f"{RED}+" + "-"*38 + f"{RED}+{RESET}")
+	else:
+		print(f"{RED}Clipboard Empty{RESET}")
 
-	def main():
-		sys_email = creds.sys_email if hasattr(creds, 'sys_email') else None
-		sys_email = creds.usr_id if hasattr(creds, 'usr_id') else None
-		sys_ursPasswd = creds.usr_passwd if hasattr(creds, 'usr_passwd') else None
-		sys_usrEmail = creds.email if hasattr(creds, 'email') else None
-		while True:
-			print("Log in to OpenX")
+def stor_fil(passwd_history):
+	try:
+		json_fil = json.dumps(passwd_history, indent = 5)
+		with open(input(f"{GREEN}Save file as: {RESET}"), "w") as file:
+			file.write(json_fil)
+	except ValueError:
+		print(f"{RED}Error 400{RESET}")
+
+def menu():
+	print(f"{RED}="*60 + f"\nPassword Generator\n" + f"{RED}={RESET}"*60)
+	print(f"{RED}[1]{RESET}. {GREEN}Generate Password{RESET}")
+	print(f"{RED}[2]{RESET}. {GREEN}View Password History{RESET}")
+	print(f"{RED}[3]{RESET}. {GREEN}View Copied Password{RESET}")
+	print(f"{RED}[4]{RESET}. {GREEN}Store Data{RESET}")
+	print(f"{RED}[5]{RESET}. {GREEN}Exit{RESET}")
+	print(f"{RED}={RESET}"*60)
+
+def main():
+	while True:
+		menu()
+		try:
+			main_opt = int(input(f"{GREEN}Choose Option: {RESET}"))
+		except ValueError:
+			print(f"{RED}Choose Option 1-5{RESET}")
+			continue
+		
+		if main_opt == 1:
 			try:
-				main_usrName = input("Enter username: ").strip()
-				main_usrPasswd = input("Enter password: ").strip()
+				_passwd = int(input(f"{GREEN}How long would you like your password to be: {RESET}"))
 			except ValueError:
-				print("Invalid details")
+				print("{RED}Password must be 8-32 longer{RESET}")
 				continue
-			
-			if main_usrName and main_usrPasswd:
-				menu()
-
+			passwd_generator(passwd_history, _passwd)
+			while True:
 				try:
-					menuArg = int(input("Choose Option ... 1-4: "))
+					_passwd_opt = input(f"{GREEN}Do you want to generate a new password: {RESET}").strip().upper()
 				except ValueError:
-					print("Invalid details")
+					print(f"{RED}y/N{RESET}")
 					continue
-
-				if menuArg == 1:
-					loginPage.validateResponse(sys_usrId, sys_usrPasswd, main_usrName, main_usrPasswd)
-				elif menuArg == 2:
-					usrnamValidate = input("Enter username to continue: ").strip()
-					if usrnamValidate in sys_usrId:
-						usrnameValidating(sys_usrEmail)
-						print(f"OTP sent to\n{maske_email(maske_email)}")
-						print("\n")
-
-						otp_data = self.genOTP(None)
-						generated_otp = otp_data["generated"]
-						
-						result = self.reset_loginPage(sys_email, sys_usrId, sys_usrEmail, rec_usrId)
-						try:
-							otpInput = int(input("Enter OTP: "))
-						except ValueError:
-							print("Invalid option")
-							continue
-						if str(otpInput) == generated_otp
-							newPasswd = input("Create new password: ").strip()
-							self.reset_loginValidate(sys_usrPasswd)
-				elif menuArg == 3:
-					print("System Shutting-down")
+				if _passwd_opt == "Y":
+					try:
+						_passwd = int(input(f"{GREEN}How long would you like your password to be: {RESET}"))
+					except ValueError:
+						print("{RED}Password must be 8-32 longer{RESET}")
+						continue
+					passwd_generator(passwd_history, _passwd)
+				elif _passwd_opt == "N":
+					print(f"\n{RED}Make sure to change your password in a while{RESET}\n")
 					break
+				
 				else:
+					print(f"{RED}Error 400{RESET}")
 					continue
-			else:
-				continue
+						
+		elif main_opt == 2:
+			view_psswd_history(passwd_history)
+		elif main_opt == 3:
+			paste_to()
+		elif main_opt == 4:
+			stor_fil(passwd_history)
+		elif main_opt == 5:
+			print(f"{RED}System shutting-down{RESET}")
+			break
+		else:
+			print(f"{RED}Error 400{RESET}")
+			continue
 
-__name__ == "__main__":
-	app = usrAccReset()
-	app.main()
+if __name__ == "__main__":
+	main()
