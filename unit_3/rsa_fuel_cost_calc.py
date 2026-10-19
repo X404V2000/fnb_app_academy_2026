@@ -14,35 +14,77 @@ With petrol prices shifting, drivers want to calculate travel costs. Create a qu
 5. Use type casting to ensure your numbers work, and use round() to format the
 final cost to 2 decimal places.
 '''
+import sys
 
-fuel_dbase = [{"kilometers": 0, "fuel_price": 0, "total_price": 0}]
+KM_PER_LITER = 10
+
+# None means "not entered yet", so we never show a misleading R0 total.
+fuel_dbase = {"kilometers": None, "fuel_price": None}
+
+
+# Pure calculation helpers — kept separate so they are easy to test.
+def liters_needed(kilometers):
+	"""A car uses 1 liter of fuel for every 10 km driven."""
+	return kilometers / KM_PER_LITER
+
+
+def total_cost(kilometers, fuel_price):
+	"""Total fuel cost, rounded to 2 decimal places."""
+	return round(liters_needed(kilometers) * fuel_price, 2)
+
+
+def ask_positive_float(prompt):
+	"""Keep asking until the user types a number greater than zero."""
+	while True:
+		raw = input(prompt).strip()
+		try:
+			value = float(raw)
+		except ValueError:
+			print("Please enter a valid decimal number (e.g. 22.45).")
+			continue
+		if value <= 0:
+			print("Value must be greater than 0.")
+			continue
+		return value
+
 
 def kl_func(fuel_dbase):
-	main_1 = float(input(f"[1]. Enter your kilometers: \n"))
-	fuel_dbase[0]["kilometers"] = round(main_1, 2)
+	fuel_dbase["kilometers"] = round(ask_positive_float("[1]. Enter your kilometers: "), 2)
 	return True
+
 
 def petrol_pr(fuel_dbase):
-	main_2 = float(input(f"[2]. Enter current petrol price per liter: \n"))
-	fuel_dbase[0]["fuel_price"] = round(main_2, 2)
+	fuel_dbase["fuel_price"] = round(ask_positive_float("[2]. Enter current petrol price per liter: "), 2)
 	return True
 
+
 def fuel_calc(fuel_dbase):
-	print("="*60 + "=\nRSA Fuel Cost\n" + "="*60)
-	print(f"{'Kilometers':<15} {'Fuel Price':<15} {'Cost Price'}")
-	kl = fuel_dbase[0]['kilometers']
-	fp = fuel_dbase[0]['fuel_price']
-	index_3 = kl * fp
-	print(f"{kl:<15} R{fp:<14} R{index_3}")
-	print("="*60)
+	print("=" * 60 + "\nRSA Fuel Cost\n" + "=" * 60)
+	kl = fuel_dbase["kilometers"]
+	fp = fuel_dbase["fuel_price"]
+
+	if kl is None or fp is None:
+		print("Please enter the kilometers and the petrol price first.")
+		print("=" * 60)
+		return
+
+	liters = liters_needed(kl)
+	index_3 = total_cost(kl, fp)
+
+	print(f"{'Kilometers':<15} {'Fuel Price':<15} {'Litres':<10} {'Cost'}")
+	print("-" * 60)
+	print(f"{kl:<15} R{fp:<14.2f} {liters:<10.2f} R{index_3:.2f}")
+	print("=" * 60)
+
 
 def menu():
-	print("="*60 + "\nRSA Fuel Cost Calculator\n" + "="*60)
-	print("[1]. Enter your kilometers")
-	print("[2]. Enter current petrol price per liter")
+	print("=" * 60 + "\nRSA Fuel Cost Calculator\n" + "=" * 60)
+	print("[1]. Enter your kilometers" + (" (done)" if fuel_dbase["kilometers"] is not None else ""))
+	print("[2]. Enter current petrol price per liter" + (" (done)" if fuel_dbase["fuel_price"] is not None else ""))
 	print("[3]. Show total cost")
 	print("[4]. Exit")
-	print("="*60)
+	print("=" * 60)
+
 
 def main():
 	while True:
@@ -50,9 +92,9 @@ def main():
 		try:
 			main_opt = int(input("Choose Option: "))
 		except ValueError:
-			print("Error 400")
+			print("Choose Option 1-4")
 			continue
-	
+
 		if main_opt == 1:
 			kl_func(fuel_dbase)
 		elif main_opt == 2:
@@ -60,10 +102,15 @@ def main():
 		elif main_opt == 3:
 			fuel_calc(fuel_dbase)
 		elif main_opt == 4:
+			print("System shutting-down")
 			break
 		else:
-			print("Choose Option 1-3")
-			continue
+			print("Choose Option 1-4")
+
 
 if __name__ == "__main__":
-	main()
+	try:
+		main()
+	except (KeyboardInterrupt, EOFError):
+		print("\nSystem shutting-down")
+		sys.exit(0)

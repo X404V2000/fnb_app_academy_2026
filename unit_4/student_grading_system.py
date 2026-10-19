@@ -1,10 +1,10 @@
 '''
 Practical Task
-Task Overview 
+Task Overview
 
 Build a student grade classifier called grade_classifier.py that takes a learner’s name and marks for three subjects, calculates an average, assigns a grade and a status (Pass/Fail), and displays a full report card. The program must correctly use conditionals for all grade and status logic.
 
-Requirements 
+Requirements
 
 Collect learner name and marks for three subjects (as floats) using input()
 Calculate the average mark across the three subjects
@@ -13,121 +13,156 @@ Assign Pass status if the average is 50 or above, Fail otherwise
 Flag any individual subject mark below 40 as ‘needs intervention’
 Display a formatted report card showing all inputs, the average, the grade, the status, and any intervention flags
 '''
+import sys
+
+INTERVENTION_THRESHOLD = 40
+
 stud_dbase = {
 	"stud_name": "",
 	"stud_surn": "",
-	"Subject": ["","",""],
-	"Final %": [0,0,0],
-	"Grade": ["","",""],
-	"Average": [0]
-}		#stores all students report
+	"Subject": ["", "", ""],
+	"Final %": [0.0, 0.0, 0.0],
+	"Grade": ["", "", ""],
+	"Average": 0.0,
+}  # stores all students report
 
-# main function
-def std_nam_surnam(stud_dbase, input_for_studNam, input_for_studSurn):
-	if input_for_studNam and input_for_studSurn:
-		stud_dbase["stud_name"] = input_for_studNam
-		stud_dbase["stud_surn"] = input_for_studSurn
-	else:
-		print("Error 400")
 
-# second layer function
-def sub_modify(stud_dbase):		
-	# store subject in stud_dbase["Subject"]
-	stud_dbase["Subject"][0] = str(input(f"Enter student's subject: ")).strip().upper()
-	stud_dbase["Subject"][1] = str(input(f"Enter student's subject: ")).strip().upper()
-	stud_dbase["Subject"][2] = str(input(f"Enter student's subject: ")).strip().upper()
+# Pure calculation helpers — kept separate so they are easy to test.
+def letter_grade(mark):
+	"""Return the letter grade for a single mark."""
+	if mark >= 80:
+		return "A"
+	if mark >= 70:
+		return "B"
+	if mark >= 60:
+		return "C"
+	if mark >= 50:
+		return "D"
+	return "F"
+
+
+def average_mark(marks):
+	return sum(marks) / len(marks)
+
+
+def pass_status(average):
+	return "Pass" if average >= 50 else "Fail"
+
+
+def needs_intervention(mark):
+	return mark < INTERVENTION_THRESHOLD
+
+
+# --- input helpers -------------------------------------------------------
+def ask_text(prompt):
+	while True:
+		value = input(prompt).strip().upper()
+		if value:
+			return value
+		print("This field cannot be empty.")
+
+
+def ask_mark(prompt):
+	while True:
+		raw = input(prompt).strip()
+		try:
+			mark = float(raw)
+		except ValueError:
+			print("Please enter a valid mark between 0 and 100.")
+			continue
+		if 0 <= mark <= 100:
+			return mark
+		print("Mark must be between 0 and 100.")
+
+
+def ask_name(stud_dbase):
+	stud_dbase["stud_name"] = ask_text("Enter student name: ")
+	stud_dbase["stud_surn"] = ask_text("Enter student surname: ")
+
+
+def sub_modify(stud_dbase):
+	for i in range(len(stud_dbase["Subject"])):
+		stud_dbase["Subject"][i] = ask_text(f"Enter student's subject {i + 1}: ")
+
 
 def grad_modify(stud_dbase):
-	# store grades in stud_dbase["Final %"]
-	stud_dbase["Final %"][0] = int(input(f"Enter student's grade for {stud_dbase["Subject"][0]}: "))
-	stud_dbase["Final %"][1] = int(input(f"Enter student's grade for {stud_dbase["Subject"][1]}: "))
-	stud_dbase["Final %"][2] = int(input(f"Enter student's grade for {stud_dbase["Subject"][2]}: "))
-	
+	for i in range(len(stud_dbase["Subject"])):
+		stud_dbase["Final %"][i] = ask_mark(f"Enter student's mark for {stud_dbase['Subject'][i] or f'subject {i + 1}'}: ")
+
+
 def grad_avar(stud_dbase):
-	avg_grd = ((stud_dbase["Final %"][0] + stud_dbase["Final %"][1] + stud_dbase["Final %"][2])/3)*(100/100)
-	stud_dbase["Average"] = avg_grd
-	
-# third layer function to auto calculate grading
+	stud_dbase["Average"] = average_mark(stud_dbase["Final %"])
+
+
 def third_layer_grad(stud_dbase):
-	# determine pass grading
-	if stud_dbase["Final %"][0] >= 80 and stud_dbase["Final %"][0] <= 100:
-	    stud_dbase["Grade"][0] = "A"
-	elif stud_dbase["Final %"][0] >= 70 and stud_dbase["Final %"][0] <= 79:
-	    stud_dbase["Grade"][0] = "B"
-	elif stud_dbase["Final %"][0] >= 60 and stud_dbase["Final %"][0] <= 69:
-	    stud_dbase["Grade"][0] = "C"
-	elif stud_dbase["Final %"][0] >= 50 and stud_dbase["Final %"][0] <= 59:
-	    stud_dbase["Grade"][0] = "D"
-	elif stud_dbase["Final %"][0] >= 0 and stud_dbase["Final %"][0] <= 49:
-	    stud_dbase["Grade"][0] = "F"
-	else:
-	    return False
+	for i, mark in enumerate(stud_dbase["Final %"]):
+		stud_dbase["Grade"][i] = letter_grade(mark)
 
-	if stud_dbase["Final %"][1] >= 80 and stud_dbase["Final %"][1] <= 100:
-	    stud_dbase["Grade"][1] = "A"
-	elif stud_dbase["Final %"][1] >= 70 and stud_dbase["Final %"][1] <= 79:
-	    stud_dbase["Grade"][1] = "B"
-	elif stud_dbase["Final %"][1] >= 60 and stud_dbase["Final %"][1] <= 69:
-	    stud_dbase["Grade"][1] = "C"
-	elif stud_dbase["Final %"][1] >= 50 and stud_dbase["Final %"][1] <= 59:
-	    stud_dbase["Grade"][1] = "D"
-	elif stud_dbase["Final %"][1] >= 0 and stud_dbase["Final %"][1] <= 49:
-	    stud_dbase["Grade"][1] = "F"
-	else:
-	    return False
 
-	if stud_dbase["Final %"][2] >= 80 and stud_dbase["Final %"][2] <= 100:
-	    stud_dbase["Grade"][2] = "A"
-	elif stud_dbase["Final %"][2] >= 70 and stud_dbase["Final %"][2] <= 79:
-	    stud_dbase["Grade"][2] = "B"
-	elif stud_dbase["Final %"][2] >= 60 and stud_dbase["Final %"][2] <= 69:
-	    stud_dbase["Grade"][2] = "C"
-	elif stud_dbase["Final %"][2] >= 50 and stud_dbase["Final %"][2] <= 59:
-	    stud_dbase["Grade"][2] = "D"
-	elif stud_dbase["Final %"][2] >= 0 and stud_dbase["Final %"][2] <= 49:
-	    stud_dbase["Grade"][2] = "F"
-	else:
-	    return False	
-
-third_layer_grad(stud_dbase)
-
+# --- reporting -----------------------------------------------------------
 def report(stud_dbase):
-	print(f"Name: {stud_dbase["stud_name"]}\nSurname: {stud_dbase["stud_surn"]}")
-	print(f"Subject: {stud_dbase["Subject"][0]} | {stud_dbase["Subject"][1]} | {stud_dbase["Subject"][2]} |")
-	print(f"Final %: {stud_dbase["Final %"][0]} | {stud_dbase["Final %"][1]} | {stud_dbase["Final %"][2]} |")
-	spacing = " "*20
-	print(f"{spacing} [Average Grade: {stud_dbase["Average"]}]") 
+	print("=" * 77, "\nReport Card")
+	print("=" * 77)
+	print(f"Name   : {stud_dbase['stud_name'] or '-'} {stud_dbase['stud_surn']}")
+	print("-" * 77)
+	print(f"{'Subject':<20} {'Mark':>8} {'Grade':>8} {'Flag':<22}")
+	print("-" * 77)
+	for subj, mark, grade in zip(stud_dbase["Subject"], stud_dbase["Final %"], stud_dbase["Grade"]):
+		flag = "needs intervention" if needs_intervention(mark) else ""
+		print(f"{subj or '-':<20} {mark:>8.1f} {grade:>8} {flag:<22}")
+	print("-" * 77)
+
+	avg_grd = stud_dbase["Average"]
+	print(f"Average: {avg_grd:.2f}%  ->  Overall grade {letter_grade(avg_grd)}  ({pass_status(avg_grd)})")
+	print("=" * 77)
+
 
 # menu
 def grad_menu():
 	print("Main Menu")
-	print("="*100)
+	print("=" * 100)
 	print("[1]. Insert Student Name and Surname")
 	print("[2]. Insert Student Subject")
 	print("[3]. Insert Student Marks")
 	print("[4]. Calculate Average Marks")
 	print("[5]. Show report")
+	print("[6]. Exit")
+
 
 def main_loop(stud_dbase):
-	print("="*100)
+	print("=" * 100)
 	while True:
-		grad_menu()	#show main menu
-		menu_opt = int(input("Choose option: "))
-		
+		grad_menu()  # show main menu
+		try:
+			menu_opt = int(input("Choose option: "))
+		except ValueError:
+			print("Error 400\nChoose option 1-6")
+			continue
+
 		if menu_opt == 1:
-			input_for_studNam = str(input("Enter student name: ")).strip().upper()
-			input_for_studSurn = str(input("Enter student surname: ")).strip().upper()
-			std_nam_surnam(stud_dbase, input_for_studNam, input_for_studSurn)
+			ask_name(stud_dbase)
 		elif menu_opt == 2:
 			sub_modify(stud_dbase)
 		elif menu_opt == 3:
 			grad_modify(stud_dbase)
 		elif menu_opt == 4:
 			grad_avar(stud_dbase)
+			print(f"\nAverage: {stud_dbase['Average']:.2f}%")
 		elif menu_opt == 5:
+			# Always work from the latest marks so edits are reflected.
+			grad_avar(stud_dbase)
+			third_layer_grad(stud_dbase)
 			report(stud_dbase)
+		elif menu_opt == 6:
+			print("System shutting-down")
+			break
 		else:
-			print("Error 400\nChoose option 1-5")
-		input("Press enter to return to menu")
+			print("Error 400\nChoose option 1-6")
+
+
 if __name__ == "__main__":
-	main_loop(stud_dbase)
+	try:
+		main_loop(stud_dbase)
+	except (KeyboardInterrupt, EOFError):
+		print("\nSystem shutting-down")
+		sys.exit(0)

@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.idea/
+.vscode/
+# output files created by the password generator's "Store Data" option
+passwords.json
+*.log

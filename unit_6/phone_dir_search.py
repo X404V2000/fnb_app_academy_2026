@@ -10,36 +10,52 @@ Create a mini data directory using a List and a Dictionary combined.
 
 4. Otherwise, print “Contact not found.”
 '''
+import sys
+
 contacts = {
 	"Jonathan": "0870634512",
 	"Victor": "0691341245",
 	"Mandla": "0780695478",
-	"Abdul": "0730012839"
+	"Abdul": "0730012839",
 }
+
+
+# Pure helper — kept separate so it is easy to test.
+def lookup(contacts, name):
+	"""Return the phone number for name (case-insensitive), or None if not found."""
+	search = name.strip().lower()
+	for key, number in contacts.items():
+		if key.lower() == search:
+			return number
+	return None
+
 
 def call_operator(contacts, cell_search):
 	print("processing request ...\n")
-	if cell_search in contacts:
-		print(f"Contact found ... number ({contacts[cell_search]})")
+	number = lookup(contacts, cell_search)
+	if number is not None:
+		print(f"Found! {cell_search.strip().title()}'s number is {number}")
 		return True
-	else:
-		print(f"Contact not found ... {cell_search} does not exist")
-		return False
+	print(f"Contact not found ... {cell_search.strip().title()} does not exist")
+	return False
+
 
 def view_all(contacts):
-	print("="*60,"\nContacts","\n","="*60)
+	print("=" * 60, "\nContacts\n", "=" * 60)
 	for nam, num in contacts.items():
-		print(f"{nam}: {num}")
-		print("="*60)
+		print(f"{nam:<15} {num}")
+	print("=" * 60)
+
 
 def menu():
-	print("="*60,f"\nMobileX")
-	print("="*60)
+	print("=" * 60, "\nMobileX")
+	print("=" * 60)
 	print("[1]. Search phone number")
 	print("[2]. View contacts")
 	print("[3]. Cancel")
 	print("\n")
-	print("="*60)
+	print("=" * 60)
+
 
 def main():
 	while True:
@@ -49,9 +65,13 @@ def main():
 		except ValueError:
 			print("Choose option ... 1-3")
 			continue
+
 		if call_opt == 1:
-			cell_search = input("Enter contact's name: ").strip().title()
-			call_operator(contacts, cell_search)
+			cell_search = input("Enter contact's name: ").strip()
+			if not cell_search:
+				print("Contact not found ... no name entered")
+			else:
+				call_operator(contacts, cell_search)
 		elif call_opt == 2:
 			view_all(contacts)
 		elif call_opt == 3:
@@ -59,5 +79,11 @@ def main():
 			break
 		else:
 			print("Error 400 ... Choose option 1-3")
+
+
 if __name__ == "__main__":
-	main()
+	try:
+		main()
+	except (KeyboardInterrupt, EOFError):
+		print("\nSystem shutting-down")
+		sys.exit(0)

@@ -11,48 +11,69 @@ score.
 
 4. Otherwise, cast their input into an int, check if the score is greater than 100, and print either “Wow! That’s a new high score!” or “Good try, keep playing!” based on the value.
 '''
-player = [{"score": 0}]
-computer = [{"score": 0}]
+import sys
 
-def add_score(computer, player, computer_score, player_score):
-	if player_score.lower() == "stop" or computer_score.lower() == "stop":
-		print("\nGame session ended")
-		return False
+# Track each player's best single score and the highest score seen this session.
+player = {"best": 0, "rounds": 0}
+computer = {"best": 0, "rounds": 0}
 
+
+# Pure logic — kept separate so it is easy to test.
+def score_message(score):
+	"""Return the game's reaction to a single score."""
+	if score > 100:
+		return "Wow! That's a new high score!"
+	return "Good try, keep playing!"
+
+
+def add_score(player, computer, computer_score, player_score):
+	"""Record one round. Returns False if the input was not a valid integer."""
 	try:
 		p_score = int(player_score)
 		c_score = int(computer_score)
-		for dictionary in player:
-			dictionary["score"] = dictionary["score"] + p_score
-
-		for dictionary in computer:
-			dictionary["score"] = dictionary["score"] + c_score
-
-		if player[0]["score"] > 100 and player[0]["score"] > computer[0]["score"]:
-			print("\nWow! That's a new high score!\n")
-
-		if computer[0]["score"] <= player[0]["score"] and player[0]["score"] <= 100:
-			print("\nGood try, keep playing!")
-
-		print(f"\nCurrent Score [Player: {player[0]["score"]} | Computer: {computer[0]["score"]}]\n")
-		return True
 	except ValueError:
-		print("Error 400")
+		print(f"Error 400 ... '{player_score}', '{computer_score}' are not valid scores (use whole numbers)")
 		return False
 
+	if p_score < 0 or c_score < 0:
+		print("Scores cannot be negative")
+		return False
+
+	player["rounds"] += 1
+	computer["rounds"] += 1
+	player["best"] = max(player["best"], p_score)
+	computer["best"] = max(computer["best"], c_score)
+
+	print(f"\nPlayer asked: {p_score} - {score_message(p_score)}")
+	print(f"Computer    : {c_score} - {score_message(c_score)}")
+	if player["best"] > computer["best"]:
+		print(">> Player is leading the session!")
+	elif player["best"] < computer["best"]:
+		print(">> Computer is leading the session!")
+	else:
+		print(">> It's a tie!")
+
+	print(f"\nCurrent Score [Player: {player['best']} | Computer: {computer['best']}]"
+	      f" after {player['rounds']} round(s)\n")
+	return True
+
+
 def view_score():
-	print("="*60,"\nGame Score")
-	print("="*60)
-	print(f"PLayer  : {player[0]['score']}\nComputer: {computer[0]['score']}")
-	print("="*60)
+	print("=" * 60, "\nGame Score")
+	print("=" * 60)
+	print(f"Player  : {player['best']} (best of {player['rounds']} rounds)")
+	print(f"Computer: {computer['best']} (best of {computer['rounds']} rounds)")
+	print("=" * 60)
+
 
 def menu():
-	print("="*60,"\nArcade Score Tracker")
-	print("="*60)
+	print("=" * 60, "\nArcade Score Tracker")
+	print("=" * 60)
 	print("[1]. Score Tracker")
 	print("[2]. View Score")
 	print("[3]. End Process")
-	print("="*60)
+	print("=" * 60)
+
 
 def main():
 	while True:
@@ -64,24 +85,29 @@ def main():
 			continue
 
 		if menu_access == 1:
-
 			while True:
-				player_score = input("What's your score: ").strip()
-				computer_score = input("Computer score: ").strip()
-				
-				if player_score.lower() == "stop" or computer_score.lower() == "stop":
+				player_score = input("What's your score (or 'stop'): ").strip()
+				if player_score.lower() == "stop":
 					print("\nGame session ended!")
 					break
-				result = add_score(computer, player, computer_score, player_score)
-				if not result:
+				computer_score = input("Computer score (or 'stop'): ").strip()
+				if computer_score.lower() == "stop":
+					print("\nGame session ended!")
 					break
+				add_score(player, computer, computer_score, player_score)
+
 		elif menu_access == 2:
 			view_score()
 		elif menu_access == 3:
 			print("System Tracker process shutting-down")
 			break
 		else:
-			return False
+			print("Error 400 ... Choose option 1-3")
+
 
 if __name__ == "__main__":
-	main()
+	try:
+		main()
+	except (KeyboardInterrupt, EOFError):
+		print("\nSystem Tracker process shutting-down")
+		sys.exit(0)
